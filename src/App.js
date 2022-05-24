@@ -1,23 +1,58 @@
-import logo from './logo.svg';
+import axios from "axios";
 import './App.css';
+import Navbar from './components/Navbar';
+import { Route, Routes } from 'react-router-dom';
+import ProjectListPage from './pages/ProjectListPage';
+import { useEffect, useState } from "react";
+import AddProjectPage from "./pages/AddProjectPage";
+import EditProjectPage from "./pages/EditProjectPage";
+import SignupPage from "./pages/SignupPage";
+import LoginPage from "./pages/LoginPage";
+import IsPrivate from "./components/IsPrivate";
 
 function App() {
+
+  const [projects, setProjects] = useState(null);
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const fetchProjects = () => {
+    axios.get(`${process.env.REACT_APP_API_URL}/projects`)
+      .then(response => {
+        setProjects(response.data);
+      })
+      .catch(e => console.log("error getting projects from API...", e))
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Navbar />
+
+      <Routes>
+        <Route path='/' element={<h1>Welcome</h1>} />
+        <Route path='/projects' element={<ProjectListPage projects={projects} callbackUpdateProjectList={fetchProjects} />} />
+        <Route 
+          path='/projects/create' 
+          element={
+            <IsPrivate>
+              <AddProjectPage callbackUpdateProjectList={fetchProjects} />
+            </IsPrivate>
+          } 
+        />
+        <Route 
+          path='/projects/:projectId/edit' 
+          element={
+            <IsPrivate>
+              <EditProjectPage projects={projects} callbackUpdateProjectList={fetchProjects} />
+            </IsPrivate>
+          } 
+        />
+
+        <Route path='/signup' element={<SignupPage />} />
+        <Route path='/login' element={<LoginPage />} />
+      </Routes>
     </div>
   );
 }
